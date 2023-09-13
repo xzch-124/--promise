@@ -147,7 +147,7 @@ class MyPromise {
             myAsyncCall(() => {
               try {
                 const x = onFulfiled(this.result)
-                handlePromise({x, p2, resolve, reject})
+                handlePromise({x, promise2: p2, resolve, reject})
               } catch (error) {
                 reject(error)
               }
@@ -157,7 +157,7 @@ class MyPromise {
             myAsyncCall(() => {
               try {
                 const x = onRejected(this.result)
-                handlePromise({x, p2, resolve, reject})
+                handlePromise({x, promise2: p2, resolve, reject})
               } catch (error) {
                 reject(error)
               }

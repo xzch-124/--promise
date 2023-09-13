@@ -66,7 +66,7 @@ function handlePromise({ x, promise2, resolve, reject }) {
     x.then(y => handlePromise({ promise2, x: y, resolve, reject }), err => reject(err))
   }
   // 2.3.3 如果x是一个对象或函数
-  else if (x !== null && (typeof x === 'object' || typeof x === 'function')) {
+  else if (x !== null && x !== undefined && (typeof x === 'object' || typeof x === 'function')) {
     // 2.3.3.1 把 x.then 赋值给 then
     let then = undefined
     try {
@@ -206,7 +206,7 @@ class MyPromise {
             myAsyncCall(() => {
               try {
                 const x = onFulfiled(res)
-                handlePromise({x, p2, resolve, reject})
+                handlePromise({x, promise2: p2, resolve, reject})
               } catch (error) {
                 reject(error)
               }
@@ -216,7 +216,7 @@ class MyPromise {
             myAsyncCall(() => {
               try {
                 const x = onRejected(res)
-                handlePromise({x, p2, resolve, reject})
+                handlePromise({x, promise2: p2, resolve, reject})
               } catch (error) {
                 reject(error)
               }
