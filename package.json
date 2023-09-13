@@ -1,0 +1,15 @@
+{
+  "name": "my-promise",
+  "version": "1.0.0",
+  "description": "实现符合 A+ 规范的promise 类",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:promise": "promises-aplus-tests index"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "promises-aplus-tests": "^2.1.2"
+  }
+}
