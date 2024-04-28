@@ -64,7 +64,7 @@ function handlePromise({ x, promise2, resolve, reject }) {
    */
   if (x instanceof MyPromise) {
     x.then(
-      (y) => handlePromise({ promise2, x: y, resolve, reject }),
+      (res) => handlePromise({ x: res, promise2, resolve, reject }),
       (err) => reject(err)
     );
   }
@@ -92,10 +92,11 @@ function handlePromise({ x, promise2, resolve, reject }) {
       try {
         then.call(
           x,
-          (y) => {
+          (res) => {
             if (called) return;
             called = true;
-            handlePromise({ x: y, promise2, resolve, reject });
+            handlePromise({ x: res, promise2, resolve, reject });
+            // resolve(res);
           },
           (err) => {
             if (called) return;

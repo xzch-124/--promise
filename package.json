@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:promise": "promises-aplus-tests index"
+    "test:promise": "promises-aplus-tests index2"
   },
   "author": "",
   "license": "ISC",

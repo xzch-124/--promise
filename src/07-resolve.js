@@ -6,35 +6,35 @@
  * - 传入 值 作为 resolve 的参数
  * - 传入 thenable 对象，执行其 then 方法；无 then 则按值处理
  */
-MyPromise.resolve()
+MyPromise.resolve();
 
 /**
  * 异步执行传入的函数 func
  * 依次尝试 queueMicrotask MutationObserver setTimeout
- * @param {function} func 
+ * @param {function} func
  */
 function myAsyncCall(func) {
-  if (typeof queueMicrotask === 'function') {
-    queueMicrotask(() => func())
-  } else if (typeof MutationObserver === 'function') {
+  if (typeof queueMicrotask === "function") {
+    queueMicrotask(() => func());
+  } else if (typeof MutationObserver === "function") {
     // 监听一个 dom 元素，当 dom 元素发生变化时执行
-    const obs = new MutationObserver(() => func())
-    const spanDom = document.createElement('span')
-    obs.observe(spanDom, { childList: true })
+    const obs = new MutationObserver(() => func());
+    const spanDom = document.createElement("span");
+    obs.observe(spanDom, { childList: true });
 
-    spanDom.innerText = '123'
+    spanDom.innerText = "123";
   } else {
     setTimeout(() => {
-      func()
-    }, 0)
+      func();
+    }, 0);
   }
 }
 
 const STATE = {
-  PENDING: 'pending',
-  FULFILED: 'fulfiled',
-  REJECTED: 'rejected',
-}
+  PENDING: "pending",
+  FULFILED: "fulfiled",
+  REJECTED: "rejected",
+};
 
 /**
  * 处理 then 的返回值，给下一个链式调用的 then
@@ -46,14 +46,20 @@ const STATE = {
 function handlePromise({ x, promise2, resolve, reject }) {
   if (x === promise2) {
     // 在外界可以捕获到内部抛出的错误，无需在作处理
-    throw new TypeError('Chaining cycle detected for promise #<Promise>')
+    throw new TypeError("Chaining cycle detected for promise #<Promise>");
   }
   if (x instanceof MyPromise) {
-    x.then(res => resolve(res), err => reject(err))
-  } else if ((typeof x === 'object' || typeof x === 'function') && typeof x.then === 'function') {
-    x.then(resolve, reject)
+    x.then(
+      (res) => resolve(res),
+      (err) => reject(err)
+    );
+  } else if (
+    (typeof x === "object" || typeof x === "function") &&
+    typeof x.then === "function"
+  ) {
+    x.then(resolve, reject);
   } else {
-    resolve(x)
+    resolve(x);
   }
 }
 
@@ -64,9 +70,9 @@ function handlePromise({ x, promise2, resolve, reject }) {
  * 3. 使用 then 方法，接受成功和失败状态的回调函数
  */
 class MyPromise {
-  state = STATE.PENDING
-  result = undefined
-  #handlers = []
+  state = STATE.PENDING;
+  result = undefined;
+  #handlers = [];
 
   /**
    * promise 的构造函数，接受一个函数 func 作为参数，可以执行异步操作
@@ -79,29 +85,28 @@ class MyPromise {
     // 3. 异步执行时，在改变状态后执行所有的回调函数
     const resolve = (res) => {
       if (this.state === STATE.PENDING) {
-        this.state = STATE.FULFILED
-        this.result = res
+        this.state = STATE.FULFILED;
+        this.result = res;
         this.#handlers.forEach(({ onFulfiled }) => {
-          onFulfiled(this.result)
-        })
+          onFulfiled(this.result);
+        });
       }
-    }
+    };
     const reject = (res) => {
       if (this.state === STATE.PENDING) {
-        this.state = STATE.REJECTED
-        this.result = res
+        this.state = STATE.REJECTED;
+        this.result = res;
         this.#handlers.forEach(({ onRejected }) => {
-          onRejected(this.result)
-        })
+          onRejected(this.result);
+        });
       }
-    }
+    };
 
     try {
-      func(resolve, reject)
+      func(resolve, reject);
     } catch (error) {
-      reject(error)
+      reject(error);
     }
-    
   }
 
   /**
@@ -111,85 +116,90 @@ class MyPromise {
    * 4. （异步）若状态是 STATE.PENDING 则保存回调函数，在状态改变时，再调用
    *     同时支持多次调用：依次将回调函数记录在 this.#handlers 数组中
    * 5. 保证 then 方法中回调函数的异步调用
-   * 
+   *
    * 6. 链式调用
-   * 
-   * @param {function} onFulfiled 
-   * @param {function} onRejected 
+   *
+   * @param {function} onFulfiled
+   * @param {function} onRejected
    */
   then(onFulfiled, onRejected) {
-    onFulfiled = typeof onFulfiled === 'function' ? onFulfiled : (x) => x
-    onRejected = typeof onRejected === 'function' ? onRejected : (x) => { throw x }
+    onFulfiled = typeof onFulfiled === "function" ? onFulfiled : (x) => x;
+    onRejected =
+      typeof onRejected === "function"
+        ? onRejected
+        : (x) => {
+            throw x;
+          };
 
     const p2 = new MyPromise((resolve, reject) => {
       if (this.state === STATE.FULFILED) {
         myAsyncCall(() => {
           try {
-            const x = onFulfiled(this.result)
-            handlePromise({ x, promise2: p2, resolve, reject })
-          } catch(error) {
-            reject(error)
+            const x = onFulfiled(this.result);
+            handlePromise({ x, promise2: p2, resolve, reject });
+          } catch (error) {
+            reject(error);
           }
-        })
+        });
       } else if (this.state === STATE.REJECTED) {
         myAsyncCall(() => {
           try {
-            const x = onRejected(this.result)
-            handlePromise({ x, promise2: p2, resolve, reject })
+            const x = onRejected(this.result);
+            handlePromise({ x, promise2: p2, resolve, reject });
           } catch (error) {
-            reject(error)
+            reject(error);
           }
-        })
+        });
       } else if (this.state === STATE.PENDING) {
         this.#handlers.push({
           onFulfiled: () => {
             myAsyncCall(() => {
               try {
-                const x = onFulfiled(this.result)
-                handlePromise({x, promise2: p2, resolve, reject})
+                const x = onFulfiled(this.result);
+                handlePromise({ x, promise2: p2, resolve, reject });
               } catch (error) {
-                reject(error)
+                reject(error);
               }
-            })
+            });
           },
           onRejected: () => {
             myAsyncCall(() => {
               try {
-                const x = onRejected(this.result)
-                handlePromise({x, promise2: p2, resolve, reject}), reject}), reject}), reject})
+                const x = onRejected(this.result);
+                handlePromise({ x, promise2: p2, resolve, reject });
               } catch (error) {
-                reject(error)
+                reject(error);
               }
-            })
+            });
           },
-        })
+        });
       }
-    })
-    
-    return p2
+    });
+
+    return p2;
   }
 
   /**
    * 可以链式调用
    * 等价于 then(undefined, onRejected)
-   * @param {function} onRejected 
+   * @param {function} onRejected
    */
   catch(onRejected) {
-    return this.then(undefined, onRejected)
+    return this.then(undefined, onRejected);
   }
 
   /**
    * 可以链式调用
    * 用于在状态**确定后**，进行的一些处理
    * 等价于 then(onFinally, onFinally)
-   * 
+   *
    * - onFinally 不接受参数
    * - finally 不会改变 promise 的最终状态
-   * @param {function} onFinally 
+   * @param {function} onFinally
    */
   finally(onFinally) {
     // 传入同样的回调，因此不关心pronise的最终状态
-    return this.then(onFinally, onFinally)
+    return this.then(onFinally, onFinally);
   }
 
   /**
@@ -198,29 +208,38 @@ class MyPromise {
    * - 传入 promise 实例会直接返回
    * - 传入 值 作为 resolve 的参数
    * - 传入 thenable 对象，执行其 then 方法；无 then 则按值处理
-   * @param {*} value 
+   * @param {*} value
    * @returns MyPromise
    */
   static resolve(value) {
     if (value instanceof MyPromise) {
-      return value
-    } else  {
+      return value;
+    } else {
       return new MyPromise((resolve, reject) => {
-        if ((typeof value === 'object' || typeof value === 'function') 
-        && typeof value.then === 'function') {
-          value.then(resolve, reject)
+        if (
+          (typeof value === "object" || typeof value === "function") &&
+          typeof value.then === "function"
+        ) {
+          value.then(resolve, reject);
         } else {
-          resolve(value)
+          resolve(value);
         }
-      })
+      });
     }
   }
 }
 
-const aThenable = { then(resolve, reject) { resolve('123') } }
+const aThenable = {
+  then(resolve, reject) {
+    resolve("123");
+  },
+};
 
-MyPromise.resolve(aThenable).then((res) => {
-  console.log('res', res)
-}, (rej) => {
-  console.log('rej', rej)
-})
+MyPromise.resolve(aThenable).then(
+  (res) => {
+    console.log("res", res);
+  },
+  (rej) => {
+    console.log("rej", rej);
+  }
+);
